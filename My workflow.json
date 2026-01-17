@@ -1,0 +1,392 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "356632a6-9163-4e1c-a68c-5c8a55f4b8e9",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        48
+      ],
+      "id": "680c40b4-97ce-4dbf-84be-c25224bf139a",
+      "name": "Webhook",
+      "webhookId": "356632a6-9163-4e1c-a68c-5c8a55f4b8e9"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// GLASS BOX ARCHITECTURE\n// Step: Normalization & Governance\nconst root = $input.item.json;\nconst data = root.body || root; \n\n// Fail-safe extraction\nconst rawName = data.company_name || data.company || \"\"; \nconst newsSummary = (data.news_summary || \"\").toLowerCase();\n\n// LOGIC A: The \"Laundromat\" (Regex)\nconst cleanName = rawName\n  .replace(/(\\s|,|\\.)+(Inc|LLC|Ltd|Limited|Corp|Corporation|GmbH|Co)\\.?$/i, \"\")\n  .trim();\n\n// LOGIC B: The \"Watchdog\" (Keyword Scan)\nconst negativeKeywords = [\"bankrupt\", \"fraud\", \"lawsuit\", \"investigation\", \"layoff\", \"scandal\"];\nlet status = \"PASS\";\nlet reason = \"None\";\n\nfor (const word of negativeKeywords) {\n  if (newsSummary.includes(word)) {\n    status = \"FAIL\";\n    reason = `Risk detected: ${word}`;\n    break; \n  }\n}\n\nreturn {\n  ...data, \n  normalized_company_name: cleanName,\n  safety_status: status,\n  flag_reason: reason,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        48
+      ],
+      "id": "5aa4a21d-9f18-4ab5-aa55-65a9a3fa67a7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fc84b626-09b9-4a19-ac12-b06acf565a8e",
+              "leftValue": "={{ $json.safety_status }}",
+              "rightValue": "PASS",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        48
+      ],
+      "id": "5e12071c-4491-4057-8829-bd348b4c9764",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1832h19IVYGqKdSCABkaS6IooLXmp_spMjUp2t7mNkEI",
+          "mode": "list",
+          "cachedResultName": "Clean_Revenue_Engine_Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1832h19IVYGqKdSCABkaS6IooLXmp_spMjUp2t7mNkEI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1832h19IVYGqKdSCABkaS6IooLXmp_spMjUp2t7mNkEI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $json.company_name }}",
+            "Email": "={{ $json.email }}",
+            "   Summary": "={{ $json.news_summary }}",
+            "Status": "={{ $json.safety_status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "   Summary",
+              "displayName": "   Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "867dcce2-9d40-4dc0-a7c1-6790c61ed146",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "IaZVDN8rimedhGEC",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xof75V9js2c1AxmbvrnmF0gsag0wKpBF-YXPfSVs6wQ",
+          "mode": "list",
+          "cachedResultName": "Quarantine",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xof75V9js2c1AxmbvrnmF0gsag0wKpBF-YXPfSVs6wQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xof75V9js2c1AxmbvrnmF0gsag0wKpBF-YXPfSVs6wQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $('Code in JavaScript').item.json.company_name }}",
+            "            Reason": "={{ $('Code in JavaScript').item.json.flag_reason }}",
+            "Time stamp ": "={{ $('Code in JavaScript').item.json.timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "            Reason",
+              "displayName": "            Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Risk Detected",
+              "displayName": "Risk Detected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Time stamp ",
+              "displayName": "Time stamp ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        192
+      ],
+      "id": "7adbd421-d795-4296-8042-b9f76673bb6d",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "IaZVDN8rimedhGEC",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company",
+              "value": "={{ $json.normalized_company_name }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "status",
+              "value": "PASS"
+            },
+            {
+              "name": "source",
+              "value": "outbound_portfolio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        48
+      ],
+      "id": "a9aa868c-f5b6-4530-aebb-1ead1ffd470a",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "ntshikaniso.app.n8n.cloud",
+            "content-length": "135",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "184.72.178.148",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9beec7d16429d6fc-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "184.72.178.148, 172.71.194.179",
+            "x-forwarded-host": "ntshikaniso.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-92-7c777649cb-zm9v6",
+            "x-is-trusted": "yes",
+            "x-real-ip": "184.72.178.148"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "full_name": "Andrew",
+            "email": "ng@deeplearning.ai",
+            "company_name": "LandingAI",
+            "news_summary": "The company is currently under investigation for fraud and is bankrupt."
+          },
+          "webhookUrl": "https://ntshikaniso.app.n8n.cloud/webhook-test/924eacc9-2b3f-4dfd-ae3c-b28be1600748",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "5c6c06f6-b44b-4c4c-9259-0494657b6d6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fca3d58f7613edcdbf2efe2612368866f395cb2b2e93c57d69288258918b56fb"
+  },
+  "id": "rKtzdSt2aRPMFPJIY7Mls",
+  "tags": []
+}
