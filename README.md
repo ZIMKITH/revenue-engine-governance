@@ -63,6 +63,8 @@ Zimkitha Ntshikaniso is an AI Solutions Architect specializing in GTM Systems Ar
 I build systems that make AI safe for the Enterprise. My focus is on Operational Reliability, Data Governance, and Deterministic Workflows.
 
 
+   graph TD
+    %% Nodes
     A[<b>Ingestion Layer</b><br/><i>Webhook Event Bus</i>] 
     -->|Raw JSON Payload| B(<b>Normalization Module</b><br/><i>JavaScript Node</i>)
     
